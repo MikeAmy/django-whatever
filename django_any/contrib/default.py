@@ -3,6 +3,7 @@ from inspect import isfunction, ismethod
 from django.db.models.fields import NOT_PROVIDED
 from django.db.models.fields.related import RelatedField
 from django_any.models import any_model
+import django
 
 
 def any_model_with_defaults(cls, **attrs):
@@ -15,7 +16,10 @@ def any_model_with_defaults(cls, **attrs):
                 # for stuff like default=datetime.now
                 default = default()
             if isinstance(field, RelatedField):
-                Model = field.related_field.model
+                if django.VERSION >= (1, 9):
+                    Model = field.foreign_related_fields[0].model
+                else:
+                    Model = field.related_field.model
                 if not isinstance(default, Model):
                     try:
                         default = Model.objects.get(pk=default)
